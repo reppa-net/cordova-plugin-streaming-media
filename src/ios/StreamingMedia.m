@@ -228,6 +228,15 @@ NSString * const DEFAULT_IMAGE_SCALE = @"center";
     // present modally so we get a close button
     [self.viewController presentViewController:moviePlayer animated:YES completion:^(void){
         [moviePlayer.player play];
+        CMTime interval = CMTimeMakeWithSeconds(5, NSEC_PER_SEC);
+        dispatch_queue_t mainQueue = dispatch_get_main_queue();
+        
+        [moviePlayer.player addPeriodicTimeObserverForInterval:interval
+                                                queue:mainQueue
+                                            usingBlock:^(CMTime time) {
+            [self updatePlayCounter];
+            NSLog(@"updating play count");
+        }];
     }];
     
     // add audio image and background color
@@ -242,6 +251,13 @@ NSString * const DEFAULT_IMAGE_SCALE = @"center";
     
     // setup listners
     [self handleListeners];
+}
+
+- (void) updatePlayCounter {
+    CDVPluginResult* pluginResult;
+    pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"timeUpdate"];
+    [pluginResult setKeepCallbackAsBool:YES];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:callbackId];
 }
 
 - (void) handleListeners {
